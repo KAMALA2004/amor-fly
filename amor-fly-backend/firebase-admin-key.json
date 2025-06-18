@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "amor-fly",
+  "private_key_id": "5a8c209aec94c8ecfbcb67e56f8567d30e80fd12",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDaXjTRewnSIbWo\ntJR3QbdRCQe8JFh1mOIHpY0vR8MxgOYlMRAAUSyXv4H7Qn7FZyNoMfUtQles/sCq\n2jgJYrBABZ+gB1L83zCGMSZ0nZezlkCmd3i0iXvXerx4wjcNAKwRQ6LeHm1yazxO\nGA1wz48QAnkPhnvGHuiaIhF6UyrhZwdcUN/fcDcovSJ2fzHLzkxr2+Ud5JexKeXl\nKshsw5UtLrhDq0TIQP6hW6QQcvCO1iF19RLyj2rKGTYayMi/iWD5hrr/RIEWI4Fr\nS7faSm2FyXsPk+ZlRYzTPgmfX0rLnDSUCpUV8IvEfaG4LVjiATzrUkusttmu1Plf\na3dN8zRrAgMBAAECggEATTyqCPgwgpMqylfI9Z+YZADCLCFc6odfV14OoI0M9PsH\nLFt8segEUk5J/uHHrjHrW6Tj+BSxpz5aTnQuAt/VwGdczQEaMNgOtUA4PmIpcLtx\n9Y9ncc/5Lj+63ymuyBoXQmn+dvsjMifM5kBqrJ61lu+Q+1VRfUOceTwYm4BEOAIO\nNbbiLrl2fr+7MbXxJB1JQVTEjXFNODd1R7PL1IqHCvtezwGTW1nwbQfpw+of6RpP\nNCcUf0h9ovofBgN7ZZQy79TFPcVEIJHYGeqm9azeNfQim9KIIIQTXkFtfbIn5CDf\n+AXRgU2Lb7QXITAZk+APKgru5C6O2T7nP5nZvMEW7QKBgQD25bqpJZakRTIiUOeH\n7kt+cxm+YsCTeXkRarv5Rz03/6PQxzNjr32hJcpNHqESz55tZNze6HKw5+cMjWk/\nL9lw7IEyVviUdIL/RwBEgmoTdJCkBsnsrukQURQ87iUlYGP/Zsiq5lFPRMLmixgf\n14X+VYRmg4ktKpI2ENbOpg5r3wKBgQDiazXuCk1X2LZJiIbI5zVLnBysPJ0nW81I\nx0Nzc7X0xos7ex3fxbSKl13d7GSbTLPN53ID2f6h+s3beKkZ0d2vstHChVC8Kugl\nuu3LlyMQHVr1gSoZ1pAKOVIjxWFg0Ig5aF22LfnXne8O8KNJcPMRosvTPyDih0Gi\n8txzWhkI9QKBgGU1XOQTnYHvP5LjmVWWcGoAYtAxiQGrLN7f4vhXpJe8+nkN/1ng\nyV3ysNAWOy8L3sS3MPdLUCCGn6b8nOUjBz6MJJXvIu0wKbbdcxWiZDtfcB9dDQ8x\n0CY5JlOnx6Bft/4tMxsjWLdm14JMCHKdFbdhdOnVB7l1FwSEuJlzZrv/AoGAYIKw\nbzHG+/3s3XUrdrFO/1agxi3kEuXHoBEHyEt3MMn8iTMWbc7ZAQY6RaFA1Q2hys+v\nwsKGDkdYvgc1lULmisDfNlobKsnjQEnomJJoqLLKlcEjz/WsWh9KyuKUem8I0eeR\nolkAmQ7B2o1qHKDfixHobbgH7WcX7Dw3CZhK+Y0CgYB7LBozA3WDxBMHQWTkiNEX\nyEH+jJ5xtc6OsHhA19YqwZ46ZNNuSb8N15pSgKi1Krkt/Os/orAese3Zj661UHUf\nraFfRDDkC4jrXpT8+haar4YuhBLb9ax4LiyFH2PVgqf0nh3hJTIbTmEICDJmg4Tp\nyJjUpR5ZN9T3FTGs2xsZjw==\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@amor-fly.iam.gserviceaccount.com",
+  "client_id": "104808643027969628332",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40amor-fly.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
