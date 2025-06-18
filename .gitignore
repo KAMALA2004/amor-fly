@@ -1,0 +1,12 @@
+# Node.js / React / React Native / Firebase common ignores
+node_modules/
+.expo/
+.expo-shared/
+.idea/
+.vscode/
+.env
+*.log
+build/
+dist/
+.DS_Store
+firebase-debug.log
