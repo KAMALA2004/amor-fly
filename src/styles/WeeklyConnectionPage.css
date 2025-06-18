@@ -1,0 +1,37 @@
+.weekly-connection-page {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: #fff9f3;
+  border: 1px solid #e0d7cf;
+  border-radius: 10px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', sans-serif;
+  color: #4d2e1f;
+}
+
+.weekly-connection-page h2 {
+  text-align: center;
+  color: #9f7651;
+  margin-bottom: 20px;
+}
+
+.locked-box,
+.match-box {
+  padding: 20px;
+  background-color: #f7e7da;
+  border: 1px dashed #c19a75;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.1em;
+  color: #5a3929;
+}
+
+.locked-box p {
+  font-weight: 600;
+  color: #c4432b;
+}
+
+.match-box strong {
+  color: #693f21;
+}

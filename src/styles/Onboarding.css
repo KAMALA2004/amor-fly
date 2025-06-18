@@ -38,3 +38,70 @@
   border-radius: 8px;
   cursor: pointer;
 }
+.onboarding-container {
+  max-width: 600px;
+  margin: auto;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #ccc;
+}
+
+.step-content {
+  margin-top: 20px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.skills-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.skill-btn,
+.next-btn {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  background: #9F7651;
+  color: white;
+  cursor: pointer;
+}
+
+.skill-btn.selected {
+  background: #693F21;
+}
+
+.next-btn {
+  margin-top: 20px;
+}
+
+.avatar-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.avatar-btn {
+  font-size: 24px;
+  padding: 10px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background-color: #eee;
+  cursor: pointer;
+}
+
+.avatar-btn.selected {
+  border-color: #9F7651;
+  background-color: #ffd;
+}

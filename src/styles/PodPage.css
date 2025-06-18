@@ -1,0 +1,98 @@
+.pod-container {
+  padding: 2rem;
+  max-width: 700px;
+  margin: auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+}
+
+.member-list {
+  list-style-type: none;
+  padding-left: 0;
+  margin-top: 10px;
+}
+
+.member-list li {
+  padding: 8px;
+  background: #f2f2f2;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.button-group {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chat-btn, .feedback-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s ease;
+}
+
+.chat-btn {
+  background-color: #693f21;
+  color: white;
+}
+
+.feedback-btn {
+  background-color: #f5f5f5;
+  color: #693f21;
+  border: 2px solid #693f21;
+}
+
+.feedback-btn:hover,
+.chat-btn:hover {
+  opacity: 0.9;
+}
+
+.feedback-section {
+  margin-top: 30px;
+}
+.progress-btn, .oneone-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s ease;
+}
+
+.progress-btn {
+  background-color: #e0dacd;
+  color: #4b2e1f;
+}
+
+.oneone-btn {
+  background-color: #fff8e1;
+  color: #4e342e;
+  border: 2px dashed #4e342e;
+}
+
+.progress-btn:hover,
+.oneone-btn:hover {
+  opacity: 0.9;
+}
+.feedback-section textarea {
+  width: 100%;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+  resize: vertical;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.match-section {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #fef6f0;
+  border-left: 5px solid #693f21;
+  border-radius: 8px;
+}

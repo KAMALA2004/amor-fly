@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -31,15 +32,19 @@ io.on('connection', (socket) => {
     const message = {
       text,
       sender,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(), // ✅ Firestore native timestamp
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
     };
 
     try {
-      // Save to Firestore first
-      await db.collection('pods').doc(podId).collection('messages').add(message);
+      // Save message
+      const docRef = await db.collection('pods').doc(podId).collection('messages').add(message);
 
-      // Emit back to room (can also await, but not required)
-      io.to(podId).emit('receive-message', message);
+      // Fetch saved doc with real timestamp
+      const savedMsg = await docRef.get();
+      const savedData = savedMsg.data();
+
+      // Emit message with actual timestamp
+      io.to(podId).emit('receive-message', savedData);
 
       console.log(`📨 Message from ${sender} saved to pod ${podId}`);
     } catch (error) {

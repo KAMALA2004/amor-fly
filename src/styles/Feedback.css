@@ -1,0 +1,35 @@
+.feedback-form-container {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #fff4ed;
+  border: 1px solid #e4c5aa;
+  border-radius: 8px;
+}
+
+.feedback-form-container h4 {
+  margin-bottom: 10px;
+  color: #9f7651;
+}
+
+.feedback-form-container textarea {
+  width: 100%;
+  padding: 10px;
+  font-size: 1em;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  resize: vertical;
+}
+
+.feedback-form-container button {
+  padding: 8px 16px;
+  background-color: #9f7651;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.feedback-form-container button:hover {
+  background-color: #7e5c3d;
+}

@@ -5,6 +5,9 @@ import Login from './pages/Login';
 import Onboarding from './pages/Onboarding';
 import PodPage from './pages/PodPage';
 import PodChat from './pages/PodChat';
+import ProgressSharePage from './pages/ProgressSharePage';
+import FeedbackPage from './pages/FeedbackPage';
+import WeeklyConnectionPage from './pages/WeeklyConnectionPage';
 
 function App() {
   return (
@@ -13,12 +16,11 @@ function App() {
         <Route path="/" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
         <Route path="/onboarding" element={<Onboarding />} />
-        
-        {/* ✅ Pod details page */}
         <Route path="/pod/:podId" element={<PodPage />} />
-        
-        {/* ✅ Chat page with a different route */}
         <Route path="/podchat/:podId" element={<PodChat />} />
+        <Route path="/pod/:podId" element={<PodPage />} />
+        <Route path="/weekly-connection/:podId" element={<WeeklyConnectionPage />} />
+        <Route path="/feedback-form/:podId" element={<FeedbackPage />} />
       </Routes>
     </Router>
   );
