@@ -1,0 +1,40 @@
+.onboarding-container {
+  max-width: 600px;
+  margin: auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.skills-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.skill-btn {
+  padding: 10px 16px;
+  border: 2px solid #693F21;
+  background-color: white;
+  color: #693F21;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  min-width: 100px;
+}
+
+.skill-btn.selected {
+  background-color: #693F21;
+  color: white;
+}
+
+.next-btn {
+  margin-top: 1.5rem;
+  padding: 10px 20px;
+  background-color: #693F21;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
