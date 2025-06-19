@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase/config';
 import { onAuthStateChanged } from 'firebase/auth';
 import {
@@ -10,10 +10,11 @@ import {
 } from 'firebase/firestore';
 import { format } from 'date-fns';
 import '../styles/WeeklyConnectionPage.css';
-import FeedbackForm from './FeedbackForm'; // ✅ Make sure this path is correct
+import FeedbackForm from '../pages/FeedbackForm';
 
 const WeeklyConnectionPage = () => {
   const { podId } = useParams();
+  const navigate = useNavigate();
   const [userId, setUserId] = useState(null);
   const [anonName, setAnonName] = useState('');
   const [matchInfo, setMatchInfo] = useState(null);
@@ -22,32 +23,18 @@ const WeeklyConnectionPage = () => {
 
   const currentWeekKey = format(new Date(), "yyyy-'W'II");
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user || !podId) return;
-
-      setUserId(user.uid);
-      await checkEligibility(user.uid);
-      await fetchAnonName(user.uid);
-      await fetchMatchInfo();
-
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [podId]);
-
-  const checkEligibility = async (uid) => {
+  // ✅ Check if progress submitted for this week
+  const checkEligibility = async (user) => {
     try {
       const progressRef = collection(db, 'pods', podId, 'progressUpdates');
       const progressSnap = await getDocs(progressRef);
-      const currentWeek = currentWeekKey;
+      const updates = progressSnap.docs.map((doc) => doc.data());
 
-      const hasSubmitted = progressSnap.docs.some((doc) => {
-        const data = doc.data();
+      const hasSubmitted = updates.some((update) => {
+        const timestamp = update.timestamp?.toDate?.() || update.timestamp;
         return (
-          data.userId === uid &&
-          format(data.timestamp.toDate(), "yyyy-'W'II") === currentWeek
+          update.userId === user.uid &&
+          format(timestamp, "yyyy-'W'II") === currentWeekKey
         );
       });
 
@@ -57,19 +44,8 @@ const WeeklyConnectionPage = () => {
     }
   };
 
-  const fetchAnonName = async (uid) => {
-    try {
-      const userRef = doc(db, 'users', uid);
-      const userSnap = await getDoc(userRef);
-      if (userSnap.exists()) {
-        setAnonName(userSnap.data().anonName || 'AnonymousFox');
-      }
-    } catch (err) {
-      console.error('❌ Error fetching user anon name:', err);
-    }
-  };
-
-  const fetchMatchInfo = async () => {
+  // ✅ Get this week's match info
+  const fetchMatch = async () => {
     try {
       const matchRef = doc(db, 'pods', podId, 'weeklyMatches', currentWeekKey);
       const matchSnap = await getDoc(matchRef);
@@ -77,18 +53,44 @@ const WeeklyConnectionPage = () => {
         setMatchInfo(matchSnap.data());
       }
     } catch (err) {
-      console.error('❌ Error fetching weekly match:', err);
+      console.error('❌ Error fetching match:', err);
     }
   };
 
+  // ✅ Auth listener to fetch data
+  useEffect(() => {
+    if (!podId) return;
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUserId(user.uid);
+        await checkEligibility(user);
+
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          setAnonName(userSnap.data().anonName || 'AnonymousFox');
+        }
+
+        await fetchMatch();
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [podId]);
+
+  // ✅ Find current user's match from object-based structure
   const getMatchedPartnerId = () => {
-    const pair = matchInfo?.pairs?.find(([a, b]) => a === userId || b === userId);
-    return pair?.find((id) => id !== userId);
+    const pair = matchInfo?.pairs?.find(
+      (pair) => pair.member1 === userId || pair.member2 === userId
+    );
+    return pair ? (pair.member1 === userId ? pair.member2 : pair.member1) : null;
   };
 
   const matchedPartnerId = getMatchedPartnerId();
 
-  if (loading) return <p>⏳ Loading weekly connection...</p>;
+  if (loading) return <p>⏳ Loading your weekly connection...</p>;
 
   return (
     <div className="weekly-connection-page">
@@ -96,19 +98,29 @@ const WeeklyConnectionPage = () => {
 
       {!eligible ? (
         <div className="locked-box">
-          <p>⚠️ You haven't submitted your progress for this week yet.</p>
-          <p>📌 Please go back and submit your weekly update to unlock your match.</p>
+          <p>⚠️ Please complete required activities to unlock your 1:1 connection.</p>
         </div>
       ) : (
         <div className="match-box">
-          <p>👤 <strong>Your Anonymous Name:</strong> {anonName}</p>
+          <p>👤 <strong>{anonName}</strong></p>
+
           {matchedPartnerId ? (
             <>
-              <p>🤝 Matched with: <strong>Anonymous Member ending in {matchedPartnerId.slice(-5)}</strong></p>
+              <p>💞 Matched with: <strong>Anonymous Member ending in {matchedPartnerId.slice(-5)}</strong></p>
+
+              {/* Chat first */}
+              <button
+                className="chat-btn"
+                onClick={() => navigate(`/one-on-one-chat/${podId}/${matchedPartnerId}`)}
+              >
+                💬 Chat with your Match
+              </button>
+
+              {/* Feedback after chat */}
               <FeedbackForm podId={podId} memberId={matchedPartnerId} />
             </>
           ) : (
-            <p>❌ No match assigned yet for this week. Try again later or ask your leader to generate it.</p>
+            <p>❌ No match assigned yet. Please check back later.</p>
           )}
         </div>
       )}

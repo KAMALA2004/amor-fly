@@ -8,6 +8,8 @@ import PodChat from './pages/PodChat';
 import ProgressSharePage from './pages/ProgressSharePage';
 import FeedbackPage from './pages/FeedbackPage';
 import WeeklyConnectionPage from './pages/WeeklyConnectionPage';
+import OneOnOneChatPage from './pages/OneOnOneChatPage';
+
 
 function App() {
   return (
@@ -21,6 +23,8 @@ function App() {
         <Route path="/pod/:podId" element={<PodPage />} />
         <Route path="/weekly-connection/:podId" element={<WeeklyConnectionPage />} />
         <Route path="/feedback-form/:podId" element={<FeedbackPage />} />
+        <Route path="/one-on-one-chat/:podId/:partnerId" element={<OneOnOneChatPage />} />
+
       </Routes>
     </Router>
   );

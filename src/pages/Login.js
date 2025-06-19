@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase/config';
-import '../styles/Login.css';
+import { auth, db } from '../firebase/config';
+import { doc, getDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import '../styles/Login.css';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -11,9 +12,20 @@ const Login = () => {
 
   const handleLogin = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      alert('Login successful!');
-      navigate('/onboarding'); // we'll create this route next
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      const uid = userCred.user.uid;
+
+      // ✅ Fetch user's pod ID
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      const podId = userDoc.exists() ? userDoc.data().podId : null;
+
+      if (podId) {
+        alert('Login successful!');
+        navigate(`/pod/${podId}`); // 🔁 Go directly to their pod
+      } else {
+        alert('No pod assigned. Please complete onboarding.');
+        navigate('/onboarding'); // fallback
+      }
     } catch (err) {
       alert('Login failed: ' + err.message);
     }

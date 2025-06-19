@@ -1,4 +1,4 @@
-# Node.js / React / React Native / Firebase common ignores
+
 node_modules/
 .expo/
 .expo-shared/

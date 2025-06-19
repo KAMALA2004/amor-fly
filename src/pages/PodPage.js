@@ -2,21 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebase/config';
 import {
-  doc, getDoc, collection, addDoc, setDoc, getDocs
+  doc, getDoc, collection, addDoc, setDoc
 } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import '../styles/PodPage.css';
 import { format } from 'date-fns';
 
-
 const PodPage = () => {
   const { podId } = useParams();
   const navigate = useNavigate();
-  const [members, setMembers] = useState([]);
+  const [members, setMembers] = useState([]); // Array of { uid, anonName }
   const [anonName, setAnonName] = useState('');
+  const [userId, setUserId] = useState(null);
   const [progressText, setProgressText] = useState('');
   const [showProgressForm, setShowProgressForm] = useState(false);
-  const [showMatch, setShowMatch] = useState(false);
   const [matchInfo, setMatchInfo] = useState(null);
 
   const currentWeekKey = format(new Date(), "yyyy-'W'II");
@@ -24,28 +23,45 @@ const PodPage = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        try {
-          const podRef = doc(db, 'pods', podId);
-          const podSnap = await getDoc(podRef);
-          if (podSnap.exists()) {
-            const data = podSnap.data();
-            setMembers(data.members || []);
-          }
+        setUserId(user.uid);
 
+        try {
+          // 🔹 Get current user's anon name
           const userRef = doc(db, 'users', user.uid);
           const userSnap = await getDoc(userRef);
           if (userSnap.exists()) {
-            setAnonName(userSnap.data().anonName || 'LearnerFox21');
+            const name = userSnap.data().anonName || 'LearnerFox21';
+            setAnonName(name);
           }
 
-          // Check if there's a match already
+          // 🔹 Get pod data
+          const podRef = doc(db, 'pods', podId);
+          const podSnap = await getDoc(podRef);
+
+          if (podSnap.exists()) {
+            const data = podSnap.data();
+            const memberUids = data.members || [];
+
+            // 🔹 Fetch anon names of all members
+            const uniqueUids = [...new Set(memberUids)];
+            const memberData = await Promise.all(
+              uniqueUids.map(async (uid) => {
+                const userDoc = await getDoc(doc(db, 'users', uid));
+                const name = userDoc.exists() ? userDoc.data().anonName || 'Anonymous' : 'Anonymous';
+                return { uid, anonName: name };
+              })
+            );
+            setMembers(memberData);
+          }
+
+          // 🔹 Check for existing match
           const matchRef = doc(db, 'pods', podId, 'weeklyMatches', currentWeekKey);
           const matchSnap = await getDoc(matchRef);
           if (matchSnap.exists()) {
             setMatchInfo(matchSnap.data());
           }
         } catch (err) {
-          console.error('Error fetching pod/user data:', err);
+          console.error('❌ Error fetching pod/user data:', err);
         }
       }
     });
@@ -63,20 +79,21 @@ const PodPage = () => {
         timestamp: new Date()
       });
       setProgressText('');
-      alert('Progress shared successfully!');
+      alert('✅ Progress shared successfully!');
     } catch (err) {
-      console.error('Error sharing progress:', err);
+      console.error('❌ Error sharing progress:', err);
     }
   };
 
-  // ✅ Match generation
+  // ✅ Generate match using objects
   const generateWeeklyMatch = async () => {
-    const shuffled = [...members].sort(() => 0.5 - Math.random());
+    const uniqueMembers = [...new Set(members.map((m) => m.uid))];
+    const shuffled = [...uniqueMembers].sort(() => 0.5 - Math.random());
     const pairs = [];
 
     for (let i = 0; i < shuffled.length; i += 2) {
       if (shuffled[i + 1]) {
-        pairs.push([shuffled[i], shuffled[i + 1]]);
+        pairs.push({ member1: shuffled[i], member2: shuffled[i + 1] });
       }
     }
 
@@ -86,17 +103,19 @@ const PodPage = () => {
         createdAt: new Date()
       });
       setMatchInfo({ pairs });
-      alert('Weekly 1:1 match created!');
+      alert('✅ Weekly 1:1 match created!');
     } catch (err) {
-      console.error('Error creating match:', err);
+      console.error('❌ Error creating match:', err);
     }
   };
 
-  // ✅ Find match for current user
+  // ✅ Get matched partner's UID
   const getCurrentUserMatch = () => {
     const uid = auth.currentUser.uid;
-    const pair = matchInfo?.pairs?.find(([a, b]) => a === uid || b === uid);
-    return pair?.filter((id) => id !== uid)[0]; // Get the other person
+    const pair = matchInfo?.pairs?.find(
+      ({ member1, member2 }) => member1 === uid || member2 === uid
+    );
+    return pair ? (pair.member1 === uid ? pair.member2 : pair.member1) : null;
   };
 
   return (
@@ -107,8 +126,10 @@ const PodPage = () => {
 
       <h3>👥 Pod Members</h3>
       <ul className="member-list">
-        {members.map((_, index) => (
-          <li key={index}>🧑 Anonymous Member {index + 1}</li>
+        {members.map((member) => (
+          <li key={member.uid}>
+            🧑 {member.uid === userId ? `${member.anonName} (You)` : member.anonName}
+          </li>
         ))}
       </ul>
 
@@ -117,27 +138,21 @@ const PodPage = () => {
           💬 Enter Pod Chat
         </button>
 
-     <button
-  className="feedback-btn"
-  onClick={() => navigate(`/weekly-connection/${podId}`)}
->
-  🔗 Go to Weekly Connection Page
-</button>
-<button
-  className="feedback-btn"
-  onClick={() => setShowProgressForm((prev) => !prev)}
->
-  📝 {showProgressForm ? 'Hide' : 'Share'} Weekly Progress
-</button>
+        <button className="feedback-btn" onClick={() => navigate(`/weekly-connection/${podId}`)}>
+          🔗 Go to Weekly Connection Page
+        </button>
 
-<button
-  className="feedback-btn"
-  onClick={() => navigate(`/feedback-form/${podId}`)}
->
-  ✍️ Open Feedback Form
-</button>
+        <button className="feedback-btn" onClick={() => setShowProgressForm((prev) => !prev)}>
+          📝 {showProgressForm ? 'Hide' : 'Share'} Weekly Progress
+        </button>
 
+        <button className="feedback-btn" onClick={() => navigate(`/feedback-form/${podId}`)}>
+          ✍️ Open Feedback Form
+        </button>
 
+        <button className="feedback-btn" onClick={generateWeeklyMatch}>
+          🔄 Generate Weekly Match
+        </button>
       </div>
 
       {showProgressForm && (
@@ -152,13 +167,13 @@ const PodPage = () => {
         </div>
       )}
 
-      {showMatch && matchInfo && (
+      {matchInfo && (
         <div className="match-section">
           <h4>✨ This Week’s 1:1 Match</h4>
           {getCurrentUserMatch() ? (
             <p>You’re matched with: <strong>{getCurrentUserMatch().slice(-5)}</strong> (anonymous)</p>
           ) : (
-            <p>No match found yet. Please try again later.</p>
+            <p>❌ No match found yet. Please try again later.</p>
           )}
         </div>
       )}
