@@ -1,0 +1,103 @@
+.streaks-board {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.header-section {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.header-section h2 {
+  color: #3D405B;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 1rem;
+}
+
+.streaks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.streak-card {
+  background: #F8F3E6;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.streak-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.streak-emoji {
+  font-size: 2.5rem;
+  margin-right: 1.5rem;
+}
+
+.streak-details h3 {
+  color: #3D405B;
+  margin: 0 0 0.5rem 0;
+}
+
+.streak-count {
+  color: #E07A5F;
+  font-weight: 600;
+  margin: 0.25rem 0;
+}
+
+.streak-status {
+  color: #81B29A;
+  font-size: 0.9rem;
+  margin: 0.25rem 0;
+}
+
+.last-active {
+  color: #666;
+  font-size: 0.8rem;
+  margin: 0.25rem 0 0 0;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.spinner {
+  border: 4px solid #F2CC8F;
+  border-top: 4px solid #E07A5F;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  background: #F8F3E6;
+  border-radius: 12px;
+  color: #666;
+}

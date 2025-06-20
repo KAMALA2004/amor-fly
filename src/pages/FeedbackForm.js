@@ -12,6 +12,7 @@ import '../styles/Feedback.css';
 const FeedbackForm = ({ podId, memberId, onSubmitSuccess }) => {
   const [feedbackText, setFeedbackText] = useState('');
   const [userAnonName, setUserAnonName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -33,6 +34,7 @@ const FeedbackForm = ({ podId, memberId, onSubmitSuccess }) => {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       await addDoc(collection(db, 'pods', podId, 'feedback'), {
         from: auth.currentUser.uid,
@@ -42,24 +44,39 @@ const FeedbackForm = ({ podId, memberId, onSubmitSuccess }) => {
         timestamp: new Date(),
       });
       setFeedbackText('');
-      alert('Feedback submitted!');
       if (onSubmitSuccess) onSubmitSuccess();
     } catch (err) {
       console.error('Error submitting feedback:', err);
       alert('Something went wrong.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="feedback-form-container">
-      <h4>📝 Give Feedback</h4>
+      <div className="feedback-form-header">
+        <h4>📝 Give Feedback</h4>
+        <p className="feedback-form-subtitle">Your feedback will be shared anonymously</p>
+      </div>
       <textarea
+        className="feedback-textarea"
         value={feedbackText}
         onChange={(e) => setFeedbackText(e.target.value)}
         placeholder="Write something thoughtful..."
         rows="4"
       />
-      <button onClick={handleSubmit}>✅ Submit Feedback</button>
+      <button 
+        className="feedback-submit-btn"
+        onClick={handleSubmit}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <span className="feedback-spinner"></span>
+        ) : (
+          '✅ Submit Feedback'
+        )}
+      </button>
     </div>
   );
 };

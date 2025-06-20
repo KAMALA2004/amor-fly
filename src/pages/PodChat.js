@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import { doc, getDoc } from 'firebase/firestore';
-
+import { FiSend } from 'react-icons/fi';
 import { auth, db } from '../firebase/config';
 import {
   collection,
@@ -13,8 +13,9 @@ import {
   addDoc,
   serverTimestamp,
 } from 'firebase/firestore';
+import '../styles/PodChat.css';
 
-const socket = io('http://localhost:5000'); // ⚠️ Make sure this matches your backend
+const socket = io('http://localhost:5000');
 
 const PodChat = () => {
   const { podId } = useParams();
@@ -22,29 +23,34 @@ const PodChat = () => {
   const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const [sender, setSender] = useState('Anonymous');
+  const [senderId, setSenderId] = useState('');
+  const [isSending, setIsSending] = useState(false);
 
- useEffect(() => {
-  const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
-    if (user) {
-      const userDocRef = doc(db, 'users', user.uid);
-      const userDocSnap = await getDoc(userDocRef);
-      if (userDocSnap.exists()) {
-        const userData = userDocSnap.data();
-        setSender(userData.anonymousName || 'Anonymous');
-      } else {
-        setSender('Anonymous');
+  const getAvatarColor = (id) => {
+    const colors = ['#E07A5F', '#81B29A', '#F4A261', '#3D405B', '#F2CC8F'];
+    return colors[id?.charCodeAt(0) % colors.length] || '#E07A5F';
+  };
+
+  useEffect(() => {
+    const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        setSenderId(user.uid);
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          setSender(userData.anonymousName || 'Anonymous');
+        } else {
+          setSender('Anonymous');
+        }
       }
-    }
-  });
-
-  return () => unsubscribeAuth();
-}, []);
-
+    });
+    return () => unsubscribeAuth();
+  }, []);
 
   useEffect(() => {
     if (!podId) return;
 
-    // Join socket room
     socket.emit('join-pod', podId);
 
     const q = query(
@@ -52,10 +58,16 @@ const PodChat = () => {
       orderBy('timestamp', 'asc')
     );
 
-    // Firestore real-time listener
     const unsubscribeFirestore = onSnapshot(q, (snapshot) => {
       const msgs = snapshot.docs
-        .map((doc) => doc.data())
+        .map((doc) => {
+          const data = doc.data();
+          return {
+            ...data,
+            id: doc.id,
+            timestamp: data.timestamp?.toDate?.() || new Date(data.timestamp),
+          };
+        })
         .filter((msg) => msg.text && msg.timestamp);
 
       setMessages(msgs);
@@ -72,83 +84,121 @@ const PodChat = () => {
   }, [messages]);
 
   const sendMessage = async () => {
-    if (!newMessage.trim()) return;
-
+    if (!newMessage.trim() || isSending) return;
+    
+    setIsSending(true);
     const messageData = {
       text: newMessage,
       sender,
+      senderId,
       timestamp: serverTimestamp(),
     };
 
     try {
-      // Save to Firestore
       await addDoc(collection(db, 'pods', podId, 'messages'), messageData);
-
-      // Emit through socket
       socket.emit('send-message', {
         ...messageData,
         podId,
-        timestamp: new Date().toISOString(), // fallback for other clients
+        timestamp: new Date().toISOString(),
       });
-
       setNewMessage('');
     } catch (err) {
       console.error('Error sending message:', err);
+    } finally {
+      setIsSending(false);
     }
   };
 
-  return (
-    <div style={{ padding: '1rem' }}>
-      <h2>Welcome to Pod Chat</h2>
-      <p><strong>Pod ID:</strong> {podId}</p>
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
 
-      <div
-        style={{
-          border: '1px solid #ccc',
-          borderRadius: '10px',
-          height: '300px',
-          overflowY: 'scroll',
-          padding: '10px',
-          marginBottom: '1rem',
-          background: '#f9f9f9',
-        }}
-      >
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            style={{
-              textAlign: msg.sender === sender ? 'right' : 'left',
-              marginBottom: '10px',
+  const formatTime = (date) => {
+    if (!date) return '';
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  return (
+    <div className="pod-chat-container">
+      <div className="chat-header">
+        <div className="pod-info">
+          <div 
+            className="pod-avatar"
+            style={{ 
+              backgroundColor: getAvatarColor(podId),
+              background: `linear-gradient(135deg, ${getAvatarColor(podId)} 0%, ${getAvatarColor(podId + '1')} 100%)`
             }}
           >
-            <div
-              style={{
-                display: 'inline-block',
-                padding: '8px 12px',
-                borderRadius: '15px',
-                background: msg.sender === sender ? '#9F7651' : '#ddd',
-                color: msg.sender === sender ? '#fff' : '#000',
-                maxWidth: '70%',
-              }}
-            >
-              <div style={{ fontSize: '0.8rem' }}>{msg.sender}</div>
-              <div>{msg.text}</div>
+            {podId?.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <h2>Pod Chat</h2>
+            <p>Room ID: {podId}</p>
+          </div>
+        </div>
+        <div className="active-users">
+          <span className="active-dot"></span>
+          <span>Active now</span>
+        </div>
+      </div>
+
+      <div className="messages-container">
+        <div className="welcome-bubble">
+          <div className="welcome-message">
+            Welcome to the pod! Messages are end-to-end encrypted.
+          </div>
+        </div>
+        
+        {messages.map((msg) => (
+          <div 
+            key={msg.id} 
+            className={`message ${msg.senderId === senderId ? 'sent' : 'received'}`}
+          >
+            {msg.senderId !== senderId && (
+              <div 
+                className="user-avatar"
+                style={{ 
+                  backgroundColor: getAvatarColor(msg.senderId),
+                  background: `linear-gradient(135deg, ${getAvatarColor(msg.senderId)} 0%, ${getAvatarColor(msg.senderId + '1')} 100%)`
+                }}
+              >
+                {msg.sender?.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="message-content">
+              {msg.senderId !== senderId && (
+                <div className="sender-name">{msg.sender}</div>
+              )}
+              <div className="message-bubble">
+                <div className="message-text">{msg.text}</div>
+                <div className="message-time">{formatTime(msg.timestamp)}</div>
+              </div>
             </div>
           </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
 
-      <input
-        type="text"
-        value={newMessage}
-        onChange={(e) => setNewMessage(e.target.value)}
-        placeholder="Type a message"
-        style={{ width: '70%', padding: '8px' }}
-      />
-      <button onClick={sendMessage} style={{ padding: '8px 16px', marginLeft: '10px' }}>
-        Send
-      </button>
+      <div className="message-input-container">
+        <input
+          type="text"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="Type your message..."
+          className="message-input"
+        />
+        <button
+          onClick={sendMessage}
+          disabled={isSending || !newMessage.trim()}
+          className="send-button"
+        >
+          <FiSend size={20} />
+        </button>
+      </div>
     </div>
   );
 };

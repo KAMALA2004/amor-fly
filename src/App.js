@@ -9,7 +9,11 @@ import ProgressSharePage from './pages/ProgressSharePage';
 import FeedbackPage from './pages/FeedbackPage';
 import WeeklyConnectionPage from './pages/WeeklyConnectionPage';
 import OneOnOneChatPage from './pages/OneOnOneChatPage';
-
+import PodSummaryPage from './pages/PodSummaryPage';
+import ProfilePage from './pages/ProfilePage'
+import StreaksBoard from './pages/StreaksBoard';
+import ResourceHub from './pages/ResourceHub';
+import ForgotPassword from './pages/ForgotPassword';
 
 function App() {
   return (
@@ -24,7 +28,11 @@ function App() {
         <Route path="/weekly-connection/:podId" element={<WeeklyConnectionPage />} />
         <Route path="/feedback-form/:podId" element={<FeedbackPage />} />
         <Route path="/one-on-one-chat/:podId/:partnerId" element={<OneOnOneChatPage />} />
-
+        <Route path="/pod-summary/:podId" element={<PodSummaryPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/streaks/:podId" element={<StreaksBoard />} />
+        <Route path="/pod/:podId/resources" element={<ResourceHub />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
       </Routes>
     </Router>
   );
