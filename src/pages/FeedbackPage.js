@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { auth, db } from '../firebase/config';
-import { collection, getDocs, doc } from 'firebase/firestore';
-import { FiUser, FiMessageSquare, FiSend } from 'react-icons/fi';
+import { collection, getDocs } from 'firebase/firestore';
+import { FiUser, FiMessageSquare } from 'react-icons/fi';
 import { FaHandsHelping } from 'react-icons/fa';
 import FeedbackForm from '../pages/FeedbackForm';
 import '../styles/Feedback.css';
@@ -18,20 +18,19 @@ const FeedbackPage = () => {
         const uid = auth.currentUser?.uid;
         if (!uid) return;
 
-        // Get all users to find the current user's podId
         const usersSnap = await getDocs(collection(db, 'users'));
+
         const userDoc = usersSnap.docs.find(doc => doc.id === uid);
         const podId = userDoc?.data()?.podId;
 
         setUserPodId(podId);
 
-        // Get all users in the same pod (except self)
         const podMembers = usersSnap.docs
           .filter(doc => doc.data().podId === podId && doc.id !== uid)
-          .map(doc => ({ 
-            id: doc.id, 
+          .map(doc => ({
+            id: doc.id,
             ...doc.data(),
-            color: getRandomColor() // Assign a random color to each member
+            color: getRandomColor()
           }));
 
         setMembers(podMembers);
@@ -47,7 +46,7 @@ const FeedbackPage = () => {
 
   const getRandomColor = () => {
     const colors = [
-      '#FF9AA2', '#FFB7B2', '#FFDAC1', '#E2F0CB', 
+      '#FF9AA2', '#FFB7B2', '#FFDAC1', '#E2F0CB',
       '#B5EAD7', '#C7CEEA', '#F8B195', '#F67280',
       '#6C5B7B', '#355C7D'
     ];
@@ -81,17 +80,19 @@ const FeedbackPage = () => {
         <div className="member-cards">
           {members.map((member) => (
             <div key={member.id} className="member-card">
-              <div 
+              <div
                 className="member-avatar"
                 style={{ backgroundColor: member.color }}
               >
-                <FiUser />
+                <span style={{ fontSize: '1.5rem' }}>
+                  {member.avatar || '🐾'}
+                </span>
               </div>
               <div className="member-info">
-                <h3>Anonymous Member {member.anonName || member.id.slice(-5)}</h3>
+                <h3>{member.avatar || '🐾'} {member.anonymousName || `Anonymous ${member.id.slice(-5)}`}</h3>
                 <p className="member-role">{member.role || 'Pod Member'}</p>
               </div>
-              
+
               <div className="feedback-section">
                 <div className="section-header">
                   <FiMessageSquare />

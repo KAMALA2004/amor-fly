@@ -38,7 +38,6 @@ const ProgressSharePage = () => {
     setSubmitting(true);
 
     try {
-      // Save progress entry to pod's subcollection
       await addDoc(collection(db, 'pods', podId, 'progressUpdates'), {
         userId: uid,
         anonymousName: anonName,
@@ -46,7 +45,6 @@ const ProgressSharePage = () => {
         timestamp: Timestamp.now(),
       });
 
-      // Update lastProgressDate in user profile
       await updateDoc(doc(db, 'users', uid), {
         lastProgressDate: Timestamp.now(),
       });

@@ -5,7 +5,6 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { format } from 'date-fns';
 import '../styles/WeeklyConnectionPage.css';
-import FeedbackForm from '../pages/FeedbackForm';
 
 const WeeklyConnectionPage = () => {
   const { podId } = useParams();
@@ -186,17 +185,6 @@ const WeeklyConnectionPage = () => {
                   >
                     💬 Start Chatting
                   </button>
-                  <button 
-                    className="secondary-btn"
-                    onClick={() => navigate(`/pods/${podId}/profile/${matchedPartnerId}`)}
-                  >
-                    👀 View Shared Progress
-                  </button>
-                </div>
-
-                <div className="feedback-section">
-                  <h4>How was your connection?</h4>
-                  <FeedbackForm podId={podId} memberId={matchedPartnerId} />
                 </div>
               </>
             ) : (

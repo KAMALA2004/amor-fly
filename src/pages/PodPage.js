@@ -1,4 +1,3 @@
-// PodPage.js
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebase/config';
@@ -22,6 +21,7 @@ const PodPage = () => {
   const [userPoints, setUserPoints] = useState(0);
   const [activeTab, setActiveTab] = useState('overview');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [progressEntries, setProgressEntries] = useState([]);
 
   const currentWeekKey = format(new Date(), "yyyy-'W'II");
 
@@ -29,7 +29,7 @@ const PodPage = () => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUserId(user.uid);
-        loadPodData(user.uid);
+        await loadPodData(user.uid);
       }
     });
     return () => unsubscribe();
@@ -54,8 +54,8 @@ const PodPage = () => {
           memberUids.map(async (uid) => {
             const userDoc = await getDoc(doc(db, 'users', uid));
             const userData = userDoc.data() || {};
-            return { 
-              uid, 
+            return {
+              uid,
               anonymousName: userData.anonymousName || 'Anonymous',
               avatar: userData.avatar || '👤'
             };
@@ -73,45 +73,61 @@ const PodPage = () => {
 
       const weekKey = format(new Date(), "yyyy-'W'II");
       let hasThisWeek = false;
-      const participationMap = {};
 
-      progressSnap.docs.forEach(docSnap => {
-        const entry = docSnap.data();
+      const progressData = progressSnap.docs.map(docSnap => docSnap.data());
+
+      progressData.forEach(entry => {
         const isCurrentUser = entry.userId === uid;
         const week = format(entry.timestamp?.toDate(), "yyyy-'W'II");
-        
-        if (isCurrentUser && week === weekKey) hasThisWeek = true;
-        
-        if (!participationMap[entry.userId]) {
-          participationMap[entry.userId] = new Set();
+        if (isCurrentUser && week === weekKey) {
+          hasThisWeek = true;
         }
-        participationMap[entry.userId].add(week);
       });
 
+      setProgressEntries(progressData);
       setHasProgressThisWeek(hasThisWeek);
-
-      const memberStreaks = await Promise.all(
-        members.map(async member => {
-          const weeks = participationMap[member.uid] || new Set();
-          const userDoc = await getDoc(doc(db, 'users', member.uid));
-          const name = userDoc.exists() ? userDoc.data().anonymousName || 'Anonymous' : 'Anonymous';
-          return {
-            name,
-            count: weeks.size,
-            avatar: member.avatar
-          };
-        })
-      );
-
-      setStreaks(memberStreaks);
     } catch (err) {
       console.error('Error loading pod data:', err);
     }
   };
 
+  useEffect(() => {
+    if (!members.length || !progressEntries.length) return;
+
+    const participationMap = {};
+    const weekKey = format(new Date(), "yyyy-'W'II");
+
+    progressEntries.forEach((entry) => {
+      const week = format(entry.timestamp?.toDate?.(), "yyyy-'W'II");
+      if (!participationMap[entry.userId]) {
+        participationMap[entry.userId] = new Set();
+      }
+      participationMap[entry.userId].add(week);
+    });
+
+    const calculateStreaks = async () => {
+      const memberStreaks = await Promise.all(
+        members.map(async member => {
+          const weeks = participationMap[member.uid] || new Set();
+          const userDoc = await getDoc(doc(db, 'users', member.uid));
+          const name = userDoc.exists() ? userDoc.data().anonymousName || 'Anonymous' : 'Anonymous';
+          const avatar = member.avatar || '👤';
+          return {
+            name,
+            count: weeks.size,
+            avatar
+          };
+        })
+      );
+      setStreaks(memberStreaks);
+    };
+
+    calculateStreaks();
+  }, [members, progressEntries]);
+
   const handleProgressSubmit = async () => {
     if (!progressText.trim()) return;
-    
+
     setIsSubmitting(true);
     try {
       const userRef = doc(db, 'users', auth.currentUser.uid);
@@ -131,7 +147,7 @@ const PodPage = () => {
       setUserPoints(prevPoints + 10);
       setProgressText('');
       setShowProgressForm(false);
-      loadPodData(auth.currentUser.uid);
+      await loadPodData(auth.currentUser.uid); // Refresh everything
     } catch (err) {
       console.error('Error sharing progress:', err);
     } finally {

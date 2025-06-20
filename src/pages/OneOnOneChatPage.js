@@ -18,24 +18,26 @@ const OneOnOneChatPage = () => {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [userAnonName, setUserAnonName] = useState('');
+  const [userAvatar, setUserAvatar] = useState('🐾');
   const [currentUserId, setCurrentUserId] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const uid = user.uid;
         setCurrentUserId(uid);
 
+        // Fetch user's anonymous name and avatar
         const userRef = doc(db, 'users', uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
-          setUserAnonName(userSnap.data().anonName || 'AnonymousFox');
+          const userData = userSnap.data();
+          setUserAnonName(userData.anonymousName || 'AnonymousFox');
+          setUserAvatar(userData.avatar || '🐾');
         }
 
         const chatId = [uid, partnerId].sort().join('_');
-
-        // Listen to chat messages
         const messagesRef = collection(
           db,
           'pods',
@@ -50,12 +52,13 @@ const OneOnOneChatPage = () => {
           setMessages(snapshot.docs.map((doc) => doc.data()));
         });
 
-        // Clean up chat listener
+        // Cleanup chat listener
         return () => unsubscribeMessages();
       }
     });
 
-    return () => unsubscribe();
+    // Cleanup auth listener
+    return () => unsubscribeAuth();
   }, [podId, partnerId]);
 
   const handleSend = async () => {
@@ -74,6 +77,7 @@ const OneOnOneChatPage = () => {
     await addDoc(messagesRef, {
       senderId: currentUserId,
       senderAnon: userAnonName,
+      senderAvatar: userAvatar,
       text: inputText.trim(),
       timestamp: new Date(),
     });
@@ -96,7 +100,10 @@ const OneOnOneChatPage = () => {
               msg.senderId === currentUserId ? 'my-message' : 'their-message'
             }`}
           >
-            <strong>{msg.senderAnon}:</strong> {msg.text}
+            <strong>
+              {msg.senderAvatar || '🐾'} {msg.senderAnon || 'Anonymous'}:
+            </strong>{' '}
+            {msg.text}
           </div>
         ))}
         <div ref={messagesEndRef} />

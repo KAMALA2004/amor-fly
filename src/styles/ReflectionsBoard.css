@@ -74,39 +74,45 @@
   position: relative;
 }
 
+.reflection-form {
+  background: var(--card-bg);
+  padding: 1.25rem; /* Reduced from 1.5rem */
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 2rem;
+  width: 100%; /* Ensure full width */
+  box-sizing: border-box; /* Include padding in width */
+}
+
+.textarea-container {
+  position: relative;
+  margin-bottom: 0.5rem; /* Added spacing */
+}
+
 textarea {
   width: 100%;
-  padding: 1rem;
+  padding: 0.8rem; /* Reduced from 1rem */
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-family: inherit;
-  font-size: 1rem;
+  font-size: 0.95rem; /* Slightly smaller */
   line-height: 1.5;
   color: var(--text);
   background: var(--card-bg);
   resize: vertical;
-  min-height: 120px;
+  min-height: 100px; /* Reduced from 120px */
   transition: all 0.3s ease;
-}
-
-textarea:focus {
-  outline: none;
-  border-color: var(--primary-light);
-  box-shadow: 0 0 0 3px rgba(109, 76, 65, 0.1);
-}
-
-textarea.max-chars {
-  border-color: var(--accent);
+  box-sizing: border-box; /* Include padding in width */
 }
 
 .char-count {
   position: absolute;
-  right: 0.5rem;
-  bottom: 0.5rem;
-  font-size: 0.8rem;
+  right: 0.75rem; /* Adjusted position */
+  bottom: 0.75rem; /* Adjusted position */
+  font-size: 0.75rem; /* Smaller */
   color: var(--text-light);
-  background: rgba(255, 255, 255, 0.8);
-  padding: 0.2rem 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.15rem 0.4rem; /* Tighter padding */
   border-radius: 10px;
 }
 
@@ -117,14 +123,29 @@ textarea.max-chars {
   background: linear-gradient(to right, var(--primary), var(--primary-light));
   color: white;
   border: none;
-  padding: 0.75rem 1.5rem;
+  padding: 0.6rem 1.25rem; /* Smaller padding */
   border-radius: var(--radius-sm);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 1rem;
+  margin-top: 0.75rem; /* Reduced spacing */
+  font-size: 0.9rem; /* Smaller font */
 }
 
+@media (max-width: 768px) {
+  .reflection-form {
+    padding: 1rem; /* Even tighter on mobile */
+  }
+  
+  textarea {
+    padding: 0.7rem;
+    min-height: 90px; /* Smaller on mobile */
+  }
+  
+  .submit-button {
+    padding: 0.5rem 1rem;
+  }
+}
 .submit-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);

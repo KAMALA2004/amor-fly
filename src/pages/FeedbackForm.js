@@ -12,6 +12,7 @@ import '../styles/Feedback.css';
 const FeedbackForm = ({ podId, memberId, onSubmitSuccess }) => {
   const [feedbackText, setFeedbackText] = useState('');
   const [userAnonName, setUserAnonName] = useState('');
+  const [userAvatar, setUserAvatar] = useState('🐾');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -20,7 +21,9 @@ const FeedbackForm = ({ podId, memberId, onSubmitSuccess }) => {
         const userRef = doc(db, 'users', user.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
-          setUserAnonName(userSnap.data().anonName || 'AnonymousFox');
+          const userData = userSnap.data();
+          setUserAnonName(userData.anonymousName || 'AnonymousFox');
+          setUserAvatar(userData.avatar || '🐾');
         }
       }
     });
@@ -39,8 +42,9 @@ const FeedbackForm = ({ podId, memberId, onSubmitSuccess }) => {
       await addDoc(collection(db, 'pods', podId, 'feedback'), {
         from: auth.currentUser.uid,
         fromAnon: userAnonName,
+        fromAvatar: userAvatar,
         to: memberId,
-        text: feedbackText,
+        text: feedbackText.trim(),
         timestamp: new Date(),
       });
       setFeedbackText('');

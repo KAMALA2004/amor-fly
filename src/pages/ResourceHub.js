@@ -169,7 +169,7 @@ const ResourceHub = () => {
           <div className="input-group">
             <div className="label-container">
               <label htmlFor="description">Description</label>
-              <span className="char-counter">
+              <span className={`char-counter ${charCount > maxCharLength * 0.9 ? 'warning' : ''}`}>
                 {charCount}/{maxCharLength}
               </span>
             </div>
@@ -225,7 +225,7 @@ const ResourceHub = () => {
                     {getLinkIcon(res.link)}
                     <span className="date">{formatDate(res.createdAt)}</span>
                   </div>
-                  <h4>{res.description}</h4>
+                  <h4 className="resource-title">{res.description}</h4>
                   <a
                     href={res.link}
                     target="_blank"
