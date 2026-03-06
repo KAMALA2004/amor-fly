@@ -18,14 +18,22 @@ const ProfilePage = () => {
         try {
           const userRef = doc(db, 'users', user.uid);
           const userSnap = await getDoc(userRef);
-          
+
           if (userSnap.exists()) {
             const data = userSnap.data();
-            setUserData({ id: user.uid, ...data });
 
-            if (data.podId) {
+            // ✅ Fix bad podId — if it's an object, extract the string
+            const rawPodId = data.podId;
+            const podId = typeof rawPodId === 'object' && rawPodId !== null
+              ? rawPodId.podId
+              : rawPodId;
+
+            const cleanedData = { ...data, podId };
+            setUserData({ id: user.uid, ...cleanedData });
+
+            if (podId && typeof podId === 'string') {
               // Fetch progress updates
-              const progressRef = collection(db, 'pods', data.podId, 'progressUpdates');
+              const progressRef = collection(db, 'pods', podId, 'progressUpdates');
               const progressSnap = await getDocs(progressRef);
               const filtered = progressSnap.docs
                 .map((doc) => ({ id: doc.id, ...doc.data() }))
@@ -42,7 +50,7 @@ const ProfilePage = () => {
               setBadgeEarned(uniqueWeeks.size >= 4);
 
               // Fetch match history with anonymous names
-              const weeklyMatchesRef = collection(db, 'pods', data.podId, 'weeklyMatches');
+              const weeklyMatchesRef = collection(db, 'pods', podId, 'weeklyMatches');
               const matchSnap = await getDocs(weeklyMatchesRef);
               const matchHistoryWithNames = await Promise.all(
                 matchSnap.docs.map(async (docSnap) => {
@@ -133,7 +141,10 @@ const ProfilePage = () => {
             </div>
             <div className="info-item">
               <span className="info-label">Pod</span>
-              <span className="info-value">{userData.podId || 'Not assigned'}</span>
+              {/* ✅ Safe render — always a string now */}
+              <span className="info-value">
+                {typeof userData.podId === 'string' ? userData.podId : 'Not assigned'}
+              </span>
             </div>
             <div className="info-item">
               <span className="info-label">Personality</span>

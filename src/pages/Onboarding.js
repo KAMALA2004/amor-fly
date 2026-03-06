@@ -15,7 +15,6 @@ const Onboarding = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Expanded skill options (24 total)
   const skillOptions = [
     'Guitar', 'Piano', 'Violin', 'Singing',
     'Cooking', 'Baking', 'Mixology', 'Nutrition',
@@ -27,7 +26,6 @@ const Onboarding = () => {
     'Drawing', 'Painting', 'Sculpting', 'Digital Art'
   ];
 
-  // Expanded avatar options (24 emojis)
   const avatarOptions = [
     '🐬', '🦉', '🦊', '🐢', '🐱', '🐻', '🐧', '🦋',
     '🐘', '🦄', '🐝', '🦁', '🐼', '🦩', '🐙', '🦔',
@@ -68,20 +66,25 @@ const Onboarding = () => {
       const uid = auth.currentUser?.uid;
       if (!uid) throw new Error("User not logged in");
 
-      const podId = await assignPodsIntelligently(uid, skills, personality);
+      // ✅ result is { podId, score, type } — extract only podId string
+      const result = await assignPodsIntelligently(uid, skills, personality);
+
+      console.log('Pod assignment result:', result);
 
       await setDoc(doc(db, 'users', uid), {
         anonymousName,
+        anonName: '',
         avatar,
         skills,
         personality,
         onboardingComplete: true,
-        podId,
+        podId: result.podId,  // ✅ only the string ID
         joinedAt: new Date(),
       }, { merge: true });
 
-      navigate(`/pod/${podId}`);
+      navigate(`/pod/${result.podId}`);  // ✅ only the string ID
     } catch (err) {
+      console.error('Onboarding error:', err);
       alert('Error: ' + err.message);
     } finally {
       setLoading(false);
@@ -92,8 +95,8 @@ const Onboarding = () => {
     <div className="onboarding-container">
       <div className="progress-bar">
         {[1, 2, 3, 4].map((i) => (
-          <div 
-            key={i} 
+          <div
+            key={i}
             className={`progress-step ${i < step ? 'completed' : ''} ${i === step ? 'active' : ''}`}
           >
             {i < step ? '✓' : i}
@@ -143,7 +146,7 @@ const Onboarding = () => {
           <div className="step-content">
             <h2>What Do You Want to Learn?</h2>
             <p className="subtitle">Select skills you're interested in (choose at least one)</p>
-            
+
             <div className="search-container">
               <input
                 type="text"
@@ -222,7 +225,7 @@ const Onboarding = () => {
             <div className="review-card">
               <div className="avatar-large">{avatar}</div>
               <h3>{anonymousName}</h3>
-              
+
               <div className="review-details">
                 <div className="detail-item">
                   <span className="detail-label">Skills:</span>
@@ -241,11 +244,13 @@ const Onboarding = () => {
 
             <div className="button-group">
               <button className="btn back-btn" onClick={handleBack}>Back</button>
-              <button className="btn submit-btn" onClick={handleSubmit} disabled={loading}>
+              <button
+                className="btn submit-btn"
+                onClick={handleSubmit}
+                disabled={loading}
+              >
                 {loading ? (
-                  <>
-                    <span className="spinner"></span> Creating Your Pod...
-                  </>
+                  <><span className="spinner"></span> Creating Your Pod...</>
                 ) : 'Complete Onboarding'}
               </button>
             </div>

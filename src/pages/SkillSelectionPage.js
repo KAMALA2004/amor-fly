@@ -1,18 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase/config';
-import { doc, updateDoc } from 'firebase/firestore';
-import { assignUserToPod } from '../utils/podUtils';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { assignPodsIntelligently } from '../utils/assignPodsIntelligently';
 
 const SkillSelectionPage = () => {
   const navigate = useNavigate();
   const [selectedSkills, setSelectedSkills] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [personality, setPersonality] = useState('INTJ');
 
-  const skillsList = ['Cooking', 'Design', 'Coding', 'Marketing', 'Writing'];
+  const skillsList = [
+    'Guitar', 'Piano', 'Violin', 'Singing',
+    'Cooking', 'Baking', 'Mixology', 'Nutrition',
+    'Mindfulness', 'Yoga', 'Meditation', 'Journaling',
+    'Writing', 'Poetry', 'Blogging', 'Screenwriting',
+    'Coding', 'Web Dev', 'App Dev', 'Data Science',
+    'Photography', 'Videography', 'Photo Editing', 'Graphic Design',
+    'Languages', 'Public Speaking', 'Debate', 'Creative Writing',
+    'Drawing', 'Painting', 'Sculpting', 'Digital Art'
+  ];
+
+  // Fetch personality from Firestore if it exists
+  useEffect(() => {
+    const fetchPersonality = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      const userSnap = await getDoc(doc(db, 'users', user.uid));
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        if (data.personality) setPersonality(data.personality);
+      }
+    };
+    fetchPersonality();
+  }, []);
 
   const handleToggleSkill = (skill) => {
     setSelectedSkills((prev) =>
-      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
+      prev.includes(skill)
+        ? prev.filter((s) => s !== skill)
+        : [...prev, skill]
     );
   };
 
@@ -20,20 +47,34 @@ const SkillSelectionPage = () => {
     const user = auth.currentUser;
     if (!user) return alert('User not logged in');
 
+    setLoading(true);
     try {
-      // 1. Save selected skills to user profile
       const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        skills: selectedSkills
-      });
 
-      // 2. Assign user to pod
-      const podId = await assignUserToPod(user.uid, selectedSkills);
+      // 1. Save skills to user profile
+      await updateDoc(userRef, { skills: selectedSkills });
 
-      // 3. Navigate to Pod Page
-      navigate(`/pod/${podId}`);
+      // 2. Run Jaccard pod assignment
+      const result = await assignPodsIntelligently(
+        user.uid,
+        selectedSkills,
+        personality
+      );
+
+      console.log('Pod assignment:', result);
+      // result = { podId: "abc123", score: 0.67, type: "matched" }
+
+      // 3. Save ONLY the podId string to Firestore ← this was the bug
+      await updateDoc(userRef, { podId: result.podId });
+
+      // 4. Navigate to pod page
+      navigate(`/pod/${result.podId}`);
+
     } catch (err) {
       console.error('Error during skill selection:', err);
+      alert('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,8 +94,12 @@ const SkillSelectionPage = () => {
           </label>
         ))}
       </div>
-      <button onClick={handleSubmit} disabled={selectedSkills.length === 0}>
-        ✅ Continue
+      <p>{selectedSkills.length} skill(s) selected</p>
+      <button
+        onClick={handleSubmit}
+        disabled={selectedSkills.length === 0 || loading}
+      >
+        {loading ? '⏳ Finding your pod...' : '✅ Continue'}
       </button>
     </div>
   );
