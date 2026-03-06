@@ -262,7 +262,7 @@ const PodPage = () => {
           className={`tab-btn ${activeTab === 'reflections' ? 'active' : ''}`}
           onClick={() => setActiveTab('reflections')}
         >
-          <span className="tab-icon">🧠</span> Reflections
+          <span className="tab-icon">🧠</span> Pod Polls
         </button>
       </div>
 
@@ -442,7 +442,7 @@ const PodPage = () => {
         <div className="tab-content">
           <section className="pod-card reflections-section">
             <h2 className="section-title">
-              <span className="section-icon">🧠</span> Wall of Reflections
+              <span className="section-icon">🧠</span> Pod Polls
             </h2>
             <ReflectionsBoard podId={podId} />
           </section>
