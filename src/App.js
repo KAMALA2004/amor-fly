@@ -10,7 +10,7 @@ import FeedbackPage from './pages/FeedbackPage';
 import WeeklyConnectionPage from './pages/WeeklyConnectionPage';
 import OneOnOneChatPage from './pages/OneOnOneChatPage';
 import PodSummaryPage from './pages/PodSummaryPage';
-import ProfilePage from './pages/ProfilePage'
+import ProfilePage from './pages/ProfilePage';
 import StreaksBoard from './pages/StreaksBoard';
 import ResourceHub from './pages/ResourceHub';
 import ForgotPassword from './pages/ForgotPassword';
@@ -24,7 +24,7 @@ function App() {
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/pod/:podId" element={<PodPage />} />
         <Route path="/podchat/:podId" element={<PodChat />} />
-        <Route path="/pod/:podId" element={<PodPage />} />
+        <Route path="/progress/:podId" element={<ProgressSharePage />} /> {/* ✅ ADDED */}
         <Route path="/weekly-connection/:podId" element={<WeeklyConnectionPage />} />
         <Route path="/feedback-form/:podId" element={<FeedbackPage />} />
         <Route path="/one-on-one-chat/:podId/:partnerId" element={<OneOnOneChatPage />} />

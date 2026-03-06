@@ -3,13 +3,13 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBl52Qe0IVhUmDKPEskWOFtHlBqh8CNzF4",
-  authDomain: "amor-fly.firebaseapp.com",
-  projectId: "amor-fly",
-  storageBucket: "amor-fly.firebasestorage.app",
-  messagingSenderId: "788920448601",
-  appId: "1:788920448601:web:92ba7acd7b927e444ca348",
-  measurementId: "G-MFN2D3KHEE"
+  apiKey: "AIzaSyCx0ib7u0CuUTthQtLCkBfVAO-O-gTvHkE",
+  authDomain: "amor-fly-f31f0.firebaseapp.com",
+  projectId: "amor-fly-f31f0",
+  storageBucket: "amor-fly-f31f0.firebasestorage.app",
+  messagingSenderId: "33370056153",
+  appId: "1:33370056153:web:3f21500f01d885f11765c8",
+  measurementId: "G-F61EFP27H9"
 };
 
 const app = initializeApp(firebaseConfig);

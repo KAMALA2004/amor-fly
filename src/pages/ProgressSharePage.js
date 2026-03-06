@@ -8,13 +8,15 @@ import {
   getDoc
 } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 const ProgressSharePage = () => {
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false); // ✅ ADDED
   const [anonName, setAnonName] = useState('');
   const { podId } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchName = async () => {
@@ -49,8 +51,8 @@ const ProgressSharePage = () => {
         lastProgressDate: Timestamp.now(),
       });
 
-      alert('✅ Progress shared successfully!');
-      setContent('');
+      setSubmitted(true); // ✅
+      navigate(`/pod/${podId}`); // ✅ Navigate back
     } catch (err) {
       alert('❌ Error sharing progress: ' + err.message);
       console.error(err);
@@ -60,7 +62,7 @@ const ProgressSharePage = () => {
   };
 
   return (
-    <div>
+    <div style={{ maxWidth: '600px', margin: '40px auto', padding: '20px' }}>
       <h2>📝 Share Your Learning Progress</h2>
       <textarea
         value={content}
@@ -72,18 +74,32 @@ const ProgressSharePage = () => {
       <br />
       <button
         onClick={handleSubmit}
-        disabled={submitting}
+        disabled={submitting || submitted} // ✅ disabled after submit
         style={{
           padding: '10px 20px',
           marginTop: '10px',
-          background: '#4CAF50',
+          background: submitted ? '#888' : '#4CAF50',
           color: 'white',
           border: 'none',
+          borderRadius: '4px',
+          cursor: submitting || submitted ? 'not-allowed' : 'pointer',
+        }}
+      >
+        {submitting ? 'Sharing...' : submitted ? '✅ Shared!' : '🚀 Share'}
+      </button>
+      <button
+        onClick={() => navigate(`/pod/${podId}`)}
+        style={{
+          padding: '10px 20px',
+          marginTop: '10px',
+          marginLeft: '10px',
+          background: 'white',
+          border: '1px solid #ccc',
           borderRadius: '4px',
           cursor: 'pointer',
         }}
       >
-        {submitting ? 'Sharing...' : '🚀 Share'}
+        ← Back to Pod
       </button>
     </div>
   );

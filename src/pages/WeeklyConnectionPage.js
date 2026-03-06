@@ -115,7 +115,7 @@ const WeeklyConnectionPage = () => {
     };
 
     updateTimeLeft();
-    const timer = setInterval(updateTimeLeft, 3600000); // Update every hour
+    const timer = setInterval(updateTimeLeft, 3600000);
     return () => clearInterval(timer);
   }, []);
 
@@ -140,9 +140,9 @@ const WeeklyConnectionPage = () => {
             <div className="lock-icon">🔒</div>
             <h3>Connection Locked</h3>
             <p>Complete your weekly progress update to unlock your 1:1 match</p>
-            <button 
+            <button
               className="primary-btn"
-              onClick={() => navigate(`/pods/${podId}/progress`)}
+              onClick={() => navigate(`/progress/${podId}`)} // ✅ FIXED
             >
               Submit Progress Update
             </button>
@@ -179,7 +179,7 @@ const WeeklyConnectionPage = () => {
                 )}
 
                 <div className="action-buttons">
-                  <button 
+                  <button
                     className="primary-btn chat-btn"
                     onClick={() => navigate(`/one-on-one-chat/${podId}/${matchedPartnerId}`)}
                   >

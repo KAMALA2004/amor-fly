@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { db, auth } from '../firebase/config';
-import { collection, addDoc, onSnapshot, query, where, Timestamp, getDocs, orderBy } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, where, Timestamp, getDocs, orderBy, doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { format } from 'date-fns';
 import { FiSend, FiCheckCircle, FiFeather } from 'react-icons/fi';
@@ -25,16 +25,14 @@ const ReflectionsBoard = ({ podId }) => {
       if (u) {
         setUser(u);
 
-        // Get user's anonymous name
-        const userSnap = await getDocs(
-          query(collection(db, 'users'), where('uid', '==', u.uid))
-        );
-        userSnap.forEach(doc => {
-          const data = doc.data();
-          setAnonName(data.anonymousName || 'Anonymous');
-        });
+        // ✅ FIXED: Get user doc directly by uid (not querying all users)
+        const userRef = doc(db, 'users', u.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          setAnonName(userSnap.data().anonymousName || 'Anonymous');
+        }
 
-        // Check if reflection already submitted
+        // Check if reflection already submitted this week
         const reflectionQuery = query(
           collection(db, 'pods', podId, 'reflections'),
           where('week', '==', weekKey),

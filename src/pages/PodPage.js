@@ -22,6 +22,7 @@ const PodPage = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [progressEntries, setProgressEntries] = useState([]);
+  const [isGeneratingMatch, setIsGeneratingMatch] = useState(false);
 
   const currentWeekKey = format(new Date(), "yyyy-'W'II");
 
@@ -71,16 +72,18 @@ const PodPage = () => {
 
       if (matchSnap.exists()) setMatchInfo(matchSnap.data());
 
-      const weekKey = format(new Date(), "yyyy-'W'II");
       let hasThisWeek = false;
-
       const progressData = progressSnap.docs.map(docSnap => docSnap.data());
 
       progressData.forEach(entry => {
-        const isCurrentUser = entry.userId === uid;
-        const week = format(entry.timestamp?.toDate(), "yyyy-'W'II");
-        if (isCurrentUser && week === weekKey) {
-          hasThisWeek = true;
+        try {
+          const timestamp = entry.timestamp?.toDate?.() || new Date(entry.timestamp);
+          const week = format(timestamp, "yyyy-'W'II");
+          if (entry.userId === uid && week === currentWeekKey) {
+            hasThisWeek = true;
+          }
+        } catch (err) {
+          console.error('Timestamp error:', err);
         }
       });
 
@@ -91,39 +94,47 @@ const PodPage = () => {
     }
   };
 
+  // ✅ Fixed streaks useEffect - fetches directly instead of relying on state timing
   useEffect(() => {
-    if (!members.length || !progressEntries.length) return;
-
-    const participationMap = {};
-    const weekKey = format(new Date(), "yyyy-'W'II");
-
-    progressEntries.forEach((entry) => {
-      const week = format(entry.timestamp?.toDate?.(), "yyyy-'W'II");
-      if (!participationMap[entry.userId]) {
-        participationMap[entry.userId] = new Set();
-      }
-      participationMap[entry.userId].add(week);
-    });
+    if (!members.length) return;
 
     const calculateStreaks = async () => {
-      const memberStreaks = await Promise.all(
-        members.map(async member => {
+      try {
+        const progressSnap = await getDocs(collection(db, 'pods', podId, 'progressUpdates'));
+        const progressData = progressSnap.docs.map(d => d.data());
+
+        const participationMap = {};
+
+        progressData.forEach((entry) => {
+          try {
+            const timestamp = entry.timestamp?.toDate?.() || new Date(entry.timestamp);
+            const week = format(timestamp, "yyyy-'W'II");
+            if (!participationMap[entry.userId]) {
+              participationMap[entry.userId] = new Set();
+            }
+            participationMap[entry.userId].add(week);
+          } catch (err) {
+            console.error('Streak timestamp error:', err);
+          }
+        });
+
+        const memberStreaks = members.map(member => {
           const weeks = participationMap[member.uid] || new Set();
-          const userDoc = await getDoc(doc(db, 'users', member.uid));
-          const name = userDoc.exists() ? userDoc.data().anonymousName || 'Anonymous' : 'Anonymous';
-          const avatar = member.avatar || '👤';
           return {
-            name,
+            name: member.anonymousName || 'Anonymous',
             count: weeks.size,
-            avatar
+            avatar: member.avatar || '👤'
           };
-        })
-      );
-      setStreaks(memberStreaks);
+        });
+
+        setStreaks(memberStreaks);
+      } catch (err) {
+        console.error('Error calculating streaks:', err);
+      }
     };
 
     calculateStreaks();
-  }, [members, progressEntries]);
+  }, [members, podId]);
 
   const handleProgressSubmit = async () => {
     if (!progressText.trim()) return;
@@ -147,7 +158,7 @@ const PodPage = () => {
       setUserPoints(prevPoints + 10);
       setProgressText('');
       setShowProgressForm(false);
-      await loadPodData(auth.currentUser.uid); // Refresh everything
+      await loadPodData(auth.currentUser.uid);
     } catch (err) {
       console.error('Error sharing progress:', err);
     } finally {
@@ -157,15 +168,34 @@ const PodPage = () => {
 
   const generateWeeklyMatch = async () => {
     try {
+      setIsGeneratingMatch(true);
       const matchRef = doc(db, 'pods', podId, 'weeklyMatches', currentWeekKey);
       const matchSnap = await getDoc(matchRef);
 
       if (matchSnap.exists()) return alert('Weekly match already exists!');
 
-      const uniqueMembers = [...new Set(members.map(m => m.uid))];
-      if (uniqueMembers.length < 2) return alert('Not enough members!');
+      // ✅ Only match members who shared progress this week
+      const progressSnap = await getDocs(collection(db, 'pods', podId, 'progressUpdates'));
+      const progressData = progressSnap.docs.map(d => d.data());
 
-      const shuffled = [...uniqueMembers].sort(() => 0.5 - Math.random());
+      const eligibleUids = [...new Set(
+        progressData
+          .filter(entry => {
+            try {
+              const timestamp = entry.timestamp?.toDate?.() || new Date(entry.timestamp);
+              return format(timestamp, "yyyy-'W'II") === currentWeekKey;
+            } catch {
+              return false;
+            }
+          })
+          .map(entry => entry.userId)
+      )];
+
+      if (eligibleUids.length < 2) {
+        return alert('Not enough members have shared progress this week!');
+      }
+
+      const shuffled = [...eligibleUids].sort(() => 0.5 - Math.random());
       const pairs = [];
 
       for (let i = 0; i < shuffled.length; i += 2) {
@@ -177,6 +207,8 @@ const PodPage = () => {
       loadPodData(auth.currentUser.uid);
     } catch (err) {
       console.error('Error creating match:', err);
+    } finally {
+      setIsGeneratingMatch(false);
     }
   };
 
@@ -214,19 +246,19 @@ const PodPage = () => {
       </header>
 
       <div className="pod-tabs">
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
         >
           <span className="tab-icon">🌐</span> Overview
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'connections' ? 'active' : ''}`}
           onClick={() => setActiveTab('connections')}
         >
           <span className="tab-icon">🔗</span> Connections
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'reflections' ? 'active' : ''}`}
           onClick={() => setActiveTab('reflections')}
         >
@@ -245,7 +277,11 @@ const PodPage = () => {
             </div>
             <div className="members-grid">
               {members.map((member) => (
-                <div key={member.uid} className="member-card" onClick={() => member.uid !== userId && navigate(`/user/${member.uid}`)}>
+                <div
+                  key={member.uid}
+                  className="member-card"
+                  onClick={() => member.uid !== userId && navigate(`/user/${member.uid}`)}
+                >
                   <span className="member-avatar">{member.avatar}</span>
                   <span className="member-name">
                     {member.uid === userId ? `${member.anonymousName} (You)` : member.anonymousName}
@@ -261,22 +297,18 @@ const PodPage = () => {
               <h2 className="section-title">
                 <span className="section-icon">📈</span> Weekly Progress
               </h2>
-              <button 
+              <button
                 className={`add-progress-btn ${showProgressForm ? 'cancel' : ''}`}
                 onClick={() => setShowProgressForm(!showProgressForm)}
               >
                 {showProgressForm ? (
-                  <>
-                    <span className="btn-icon">✕</span> Cancel
-                  </>
+                  <><span className="btn-icon">✕</span> Cancel</>
                 ) : (
-                  <>
-                    <span className="btn-icon">+</span> Add Progress
-                  </>
+                  <><span className="btn-icon">+</span> Add Progress</>
                 )}
               </button>
             </div>
-            
+
             {showProgressForm && (
               <div className="progress-form">
                 <div className="form-header">
@@ -290,19 +322,15 @@ const PodPage = () => {
                   rows={5}
                 />
                 <div className="form-footer">
-                  <button 
+                  <button
                     className={`submit-progress-btn ${!progressText.trim() ? 'disabled' : ''}`}
                     onClick={handleProgressSubmit}
                     disabled={!progressText.trim() || isSubmitting}
                   >
                     {isSubmitting ? (
-                      <>
-                        <span className="spinner"></span> Sharing...
-                      </>
+                      <><span className="spinner"></span> Sharing...</>
                     ) : (
-                      <>
-                        <span className="btn-icon">🚀</span> Share Progress (+10 pts)
-                      </>
+                      <><span className="btn-icon">🚀</span> Share Progress (+10 pts)</>
                     )}
                   </button>
                 </div>
@@ -346,63 +374,60 @@ const PodPage = () => {
             <h2 className="section-title">
               <span className="section-icon">🔗</span> Weekly Connections
             </h2>
-            
-            {matchInfo ? (
-              hasProgressThisWeek ? (
-                getCurrentUserMatch() ? (
-                  <div className="match-card">
-                    <h3>Your Learning Buddy This Week</h3>
-                    <div className="match-profile">
-                      <span className="match-avatar">{getMatchedPartner().avatar}</span>
-                      <span className="match-name">{getMatchedPartner().anonymousName}</span>
-                    </div>
-                    <button 
-                      className="connect-btn"
-                      onClick={() => navigate(`/weekly-connection/${podId}`)}
-                    >
-                      Start Conversation
-                    </button>
-                  </div>
-                ) : (
-                  <p className="no-match">No match found for you this week.</p>
-                )
-              ) : (
-                <div className="match-prompt">
-                  <p>Share your weekly progress to unlock your 1:1 match!</p>
-                  <button 
-                    className="progress-prompt-btn"
-                    onClick={() => setShowProgressForm(true)}
-                  >
-                    Share Progress
-                  </button>
-                </div>
-              )
-            ) : (
-              <div className="generate-match">
-                <p>No weekly matches have been created yet.</p>
-                <button 
-                  className="generate-match-btn"
-                  onClick={generateWeeklyMatch}
+
+            {!hasProgressThisWeek ? (
+              <div className="match-prompt">
+                <p>Share your weekly progress to unlock your 1:1 match!</p>
+                <button
+                  className="progress-prompt-btn"
+                  onClick={() => navigate(`/progress/${podId}`)}
                 >
-                  Generate Weekly Matches
+                  Share Progress
                 </button>
               </div>
+            ) : !matchInfo ? (
+              <div className="generate-match">
+                <p>No weekly matches have been created yet.</p>
+                <button
+                  className="generate-match-btn"
+                  onClick={generateWeeklyMatch}
+                  disabled={isGeneratingMatch}
+                >
+                  {isGeneratingMatch ? 'Generating...' : 'Generate Weekly Matches'}
+                </button>
+              </div>
+            ) : getCurrentUserMatch() ? (
+              <div className="match-card">
+                <h3>Your Learning Buddy This Week</h3>
+                <div className="match-profile">
+                  <span className="match-avatar">{getMatchedPartner().avatar}</span>
+                  <span className="match-name">{getMatchedPartner().anonymousName}</span>
+                </div>
+                <button
+                  className="connect-btn"
+                  onClick={() => navigate(`/weekly-connection/${podId}`)}
+                >
+                  Start Conversation
+                </button>
+              </div>
+            ) : (
+              <p className="no-match">No match found for you this week.</p>
             )}
 
             <div className="quick-actions">
-              <button 
+              <button
                 className="action-btn chat-btn"
                 onClick={() => navigate(`/podchat/${podId}`)}
               >
                 <span className="btn-icon">💬</span> Pod Chat Room
               </button>
-              <button 
+              <button
                 className="action-btn resources-btn"
                 onClick={() => navigate(`/pod/${podId}/resources`)}
               >
                 <span className="btn-icon">📚</span> Resource Hub
               </button>
-              <button 
+              <button
                 className="action-btn feedback-btn"
                 onClick={() => navigate(`/feedback-form/${podId}`)}
               >
