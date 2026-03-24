@@ -399,7 +399,6 @@
   color: var(--text-light);
   grid-column: 1 / -1;
 }
-/* Add these styles to your PodPage.css */
 
 /* Connections Section */
 .connections-section {
@@ -547,6 +546,7 @@
   transform: translateY(-2px);
 }
 
+/* Quick Actions - Fixed Version */
 .quick-actions {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -556,40 +556,83 @@
 
 .action-btn {
   background-color: white;
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 1rem;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  font-weight: 500;
+  gap: 0.75rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+  font-size: 0.95rem;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
 }
 
 .action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-color: var(--primary-light);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary);
+  background-color: var(--primary);
+  color: white;
 }
 
-.chat-btn {
-  color: var(--primary-dark);
+/* Ripple effect */
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s, height 0.4s;
 }
 
-.resources-btn {
-  color: var(--primary-dark);
+.action-btn:hover::before {
+  width: 200px;
+  height: 200px;
 }
 
-.feedback-btn {
-  color: var(--primary-dark);
+/* Ensure button content stays above ripple */
+.action-btn span,
+.action-btn .btn-icon {
+  position: relative;
+  z-index: 1;
+}
+
+/* Optional: Different hover colors for each button type */
+.chat-btn:hover {
+  background-color: var(--secondary);
+  border-color: var(--secondary);
+}
+
+.resources-btn:hover {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.feedback-btn:hover {
+  background-color: var(--accent);
+  border-color: var(--accent);
 }
 
 .btn-icon {
   font-size: 1.2rem;
+  transition: transform 0.2s;
 }
+
+.action-btn:hover .btn-icon {
+  transform: scale(1.1);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .header-content {
@@ -608,6 +651,10 @@
   }
   
   .streaks-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .quick-actions {
     grid-template-columns: 1fr;
   }
 }
@@ -630,5 +677,9 @@
   .add-progress-btn {
     width: 100%;
     justify-content: center;
+  }
+  
+  .action-btn {
+    padding: 0.875rem;
   }
 }
